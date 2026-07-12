@@ -21,7 +21,7 @@ type ErrorResponse struct {
 type ModelResponse struct {
 	ModelName     string                 `json:"model_name"`
 	LiteLLMParams LiteLLMParams          `json:"litellm_params"`
-	ModelInfo     ModelInfo              `json:"model_info"`
+	ModelInfo     ModelInfoResponse      `json:"model_info"`
 	Additional    map[string]interface{} `json:"additional"`
 }
 
@@ -29,7 +29,7 @@ type ModelResponse struct {
 type ModelRequest struct {
 	ModelName     string                 `json:"model_name"`
 	LiteLLMParams map[string]interface{} `json:"litellm_params"`
-	ModelInfo     ModelInfo              `json:"model_info"`
+	ModelInfo     ModelInfoRequest       `json:"model_info"`
 	Additional    map[string]interface{} `json:"additional"`
 }
 
@@ -89,14 +89,38 @@ type LiteLLMParams struct {
 	VertexCredentials              string                 `json:"vertex_credentials,omitempty"`
 }
 
-// ModelInfo represents information about a model.
-type ModelInfo struct {
-	ID        string `json:"id"`
-	DBModel   bool   `json:"db_model"`
-	BaseModel string `json:"base_model"`
-	Tier      string `json:"tier"`
-	Mode      string `json:"mode"`
-	TeamID    string `json:"team_id,omitempty"`
+// ModelInfoRequest is serialized for create/update. Clearable values are not
+// omitted: an explicit zero, empty list, or false must reach LiteLLM.
+type ModelInfoRequest struct {
+	ID                      string    `json:"id"`
+	DBModel                 bool      `json:"db_model"`
+	BaseModel               string    `json:"base_model"`
+	Tier                    string    `json:"tier"`
+	Mode                    string    `json:"mode"`
+	TeamID                  string    `json:"team_id,omitempty"`
+	MaxInputTokens          *int      `json:"max_input_tokens,omitempty"`
+	MaxOutputTokens         *int      `json:"max_output_tokens,omitempty"`
+	InputModalities         *[]string `json:"input_modalities,omitempty"`
+	OutputModalities        *[]string `json:"output_modalities,omitempty"`
+	SupportsReasoning       *bool     `json:"supports_reasoning,omitempty"`
+	SupportsFunctionCalling *bool     `json:"supports_function_calling,omitempty"`
+}
+
+// ModelInfoResponse distinguishes an omitted API field from an explicit zero,
+// empty list, or false. Omitted values preserve the configured Terraform state.
+type ModelInfoResponse struct {
+	ID                      string    `json:"id"`
+	DBModel                 bool      `json:"db_model"`
+	BaseModel               *string   `json:"base_model"`
+	Tier                    string    `json:"tier"`
+	Mode                    string    `json:"mode"`
+	TeamID                  string    `json:"team_id,omitempty"`
+	MaxInputTokens          *int      `json:"max_input_tokens"`
+	MaxOutputTokens         *int      `json:"max_output_tokens"`
+	InputModalities         *[]string `json:"input_modalities"`
+	OutputModalities        *[]string `json:"output_modalities"`
+	SupportsReasoning       *bool     `json:"supports_reasoning"`
+	SupportsFunctionCalling *bool     `json:"supports_function_calling"`
 }
 
 // Key represents a LiteLLM API key.
