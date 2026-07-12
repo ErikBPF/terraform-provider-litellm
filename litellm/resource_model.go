@@ -11,6 +11,9 @@ func resourceLiteLLMModel() *schema.Resource {
 		Read:   resourceLiteLLMModelRead,
 		Update: resourceLiteLLMModelUpdate,
 		Delete: resourceLiteLLMModelDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"model_name": {
@@ -88,6 +91,43 @@ func resourceLiteLLMModel() *schema.Resource {
 			},
 			"team_id": {
 				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"max_input_tokens": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+			"max_output_tokens": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+			"input_modalities": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				Description: "Input modalities; empty or omitted preserves remote metadata because SDKv2 collapses empty optional lists",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"output_modalities": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				Description: "Output modalities; empty or omitted preserves remote metadata because SDKv2 collapses empty optional lists",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"supports_reasoning": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"supports_function_calling": {
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 			"mode": {

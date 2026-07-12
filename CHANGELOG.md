@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **model**: Import models by LiteLLM model ID.
+- **model**: Manage team ownership, token limits, modalities, reasoning, and function-calling metadata with presence-aware read-back.
+
+### Fixed
+
+- **model**: Reconstruct distinct routing and pricing base models during import without destructive defaults for existing configurations.
+
 ## [0.2.2] - 2026-05-13
 
 ### Fixed
