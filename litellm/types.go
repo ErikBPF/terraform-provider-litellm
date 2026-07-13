@@ -109,6 +109,13 @@ type ModelInfoRequest struct {
 	OutputModalities        *[]string `json:"output_modalities,omitempty"`
 	SupportsReasoning       *bool     `json:"supports_reasoning,omitempty"`
 	SupportsFunctionCalling *bool     `json:"supports_function_calling,omitempty"`
+	SupportsVision          *bool     `json:"supports_vision,omitempty"`
+	InputCostPerCharacter   *float64  `json:"input_cost_per_character,omitempty"`
+	DefaultVoice            *string   `json:"default_voice,omitempty"`
+	ProbeLanguage           *string   `json:"probe_language,omitempty"`
+	ProbeText               *string   `json:"probe_text,omitempty"`
+	ProbeSkip               *bool     `json:"probe_skip,omitempty"`
+	MaxTokens               *int      `json:"max_tokens,omitempty"`
 }
 
 // ModelInfoResponse distinguishes an omitted API field from an explicit zero,
@@ -126,6 +133,13 @@ type ModelInfoResponse struct {
 	OutputModalities        *[]string `json:"output_modalities"`
 	SupportsReasoning       *bool     `json:"supports_reasoning"`
 	SupportsFunctionCalling *bool     `json:"supports_function_calling"`
+	SupportsVision          *bool     `json:"supports_vision"`
+	InputCostPerCharacter   *float64  `json:"input_cost_per_character"`
+	DefaultVoice            *string   `json:"default_voice"`
+	ProbeLanguage           *string   `json:"probe_language"`
+	ProbeText               *string   `json:"probe_text"`
+	ProbeSkip               *bool     `json:"probe_skip"`
+	MaxTokens               *int      `json:"max_tokens"`
 }
 
 // Key represents a LiteLLM API key.

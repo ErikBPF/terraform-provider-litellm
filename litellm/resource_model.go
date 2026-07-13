@@ -130,6 +130,36 @@ func resourceLiteLLMModel() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"supports_vision": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"input_cost_per_character": {
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				ValidateFunc: validation.FloatAtLeast(0),
+			},
+			"default_voice": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"probe_language": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"probe_text": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"probe_skip": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"max_tokens": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
 			"mode": {
 				Type:     schema.TypeString,
 				Optional: true,
