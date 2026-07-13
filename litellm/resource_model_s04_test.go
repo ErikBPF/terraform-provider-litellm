@@ -38,6 +38,21 @@ func assertS04ModelInfoState(t *testing.T, d *schema.ResourceData, label string)
 	}
 }
 
+func s04WrappedModelResponse(response map[string]interface{}, id string) map[string]interface{} {
+	wrappedModel := make(map[string]interface{}, len(response))
+	for key, value := range response {
+		wrappedModel[key] = value
+	}
+	modelInfo, _ := response["model_info"].(map[string]interface{})
+	wrappedInfo := make(map[string]interface{}, len(modelInfo)+1)
+	for key, value := range modelInfo {
+		wrappedInfo[key] = value
+	}
+	wrappedInfo["id"] = id
+	wrappedModel["model_info"] = wrappedInfo
+	return map[string]interface{}{"data": []interface{}{wrappedModel}}
+}
+
 func requireS04ModelSchema(t *testing.T) *schema.Resource {
 	t.Helper()
 	resource := resourceLiteLLMModel()
@@ -97,8 +112,10 @@ func TestS04ModelCreateSerializesTeamAndModelInfo(t *testing.T) {
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				t.Fatalf("decode model request: %v", err)
 			}
+			_ = json.NewEncoder(w).Encode(request)
+			return
 		}
-		_ = json.NewEncoder(w).Encode(request)
+		_ = json.NewEncoder(w).Encode(s04WrappedModelResponse(request, r.URL.Query().Get("modelId")))
 	}))
 	defer srv.Close()
 
@@ -130,8 +147,10 @@ func TestS04ModelUpdateSerializesFalseCapabilities(t *testing.T) {
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				t.Fatalf("decode model update: %v", err)
 			}
+			_ = json.NewEncoder(w).Encode(request)
+			return
 		}
-		_ = json.NewEncoder(w).Encode(request)
+		_ = json.NewEncoder(w).Encode(s04WrappedModelResponse(request, r.URL.Query().Get("modelId")))
 	}))
 	defer srv.Close()
 
@@ -182,8 +201,10 @@ func TestS04LegacyModelUpdateOmitsUnconfiguredMetadata(t *testing.T) {
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				t.Fatalf("decode legacy model update: %v", err)
 			}
+			_ = json.NewEncoder(w).Encode(request)
+			return
 		}
-		_ = json.NewEncoder(w).Encode(request)
+		_ = json.NewEncoder(w).Encode(s04WrappedModelResponse(request, r.URL.Query().Get("modelId")))
 	}))
 	defer srv.Close()
 
@@ -208,15 +229,16 @@ func TestS04LegacyModelUpdateOmitsUnconfiguredMetadata(t *testing.T) {
 
 func TestS04ModelReadPreservesMetadataOmittedByAPI(t *testing.T) {
 	resource := requireS04ModelSchema(t)
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		response := map[string]interface{}{
 			"model_name": "tf-canary-big-pickle",
 			"litellm_params": map[string]interface{}{
 				"custom_llm_provider": "openai", "model": "openai/big-pickle",
 			},
 			"model_info": map[string]interface{}{"team_id": "team-terraform-litellm"},
-		})
+		}
+		_ = json.NewEncoder(w).Encode(s04WrappedModelResponse(response, r.URL.Query().Get("modelId")))
 	}))
 	defer srv.Close()
 
@@ -237,15 +259,16 @@ func TestS04ModelReadPreservesMetadataOmittedByAPI(t *testing.T) {
 
 func TestS04ModelReadClearsStalePricingBaseWhenAuthoritativeValueMatchesRouting(t *testing.T) {
 	resource := requireS04ModelSchema(t)
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		response := map[string]interface{}{
 			"model_name": "tf-canary-big-pickle",
 			"litellm_params": map[string]interface{}{
 				"custom_llm_provider": "openai", "model": "openai/big-pickle",
 			},
 			"model_info": map[string]interface{}{"base_model": "big-pickle"},
-		})
+		}
+		_ = json.NewEncoder(w).Encode(s04WrappedModelResponse(response, r.URL.Query().Get("modelId")))
 	}))
 	defer srv.Close()
 
@@ -264,15 +287,16 @@ func TestS04ModelReadClearsStalePricingBaseWhenAuthoritativeValueMatchesRouting(
 
 func TestS04ModelReadPreservesPricingBaseWhenAPIValueIsOmitted(t *testing.T) {
 	resource := requireS04ModelSchema(t)
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		response := map[string]interface{}{
 			"model_name": "tf-canary-big-pickle",
 			"litellm_params": map[string]interface{}{
 				"custom_llm_provider": "openai", "model": "openai/big-pickle",
 			},
 			"model_info": map[string]interface{}{},
-		})
+		}
+		_ = json.NewEncoder(w).Encode(s04WrappedModelResponse(response, r.URL.Query().Get("modelId")))
 	}))
 	defer srv.Close()
 
@@ -304,9 +328,9 @@ func TestS04ModelReadBackRestoresMetadataWithoutDiff(t *testing.T) {
 		},
 		"model_info": s04ModelInfo,
 	}
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(s04WrappedModelResponse(response, r.URL.Query().Get("modelId")))
 	}))
 	defer srv.Close()
 
@@ -353,11 +377,11 @@ func TestS04ImportedModelReadBackIsStableAcrossRepeatedReads(t *testing.T) {
 		"model_info": modelInfo,
 	}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet || r.URL.Path != endpointModelInfo || r.URL.Query().Get("litellm_model_id") != "model-tf-canary-big-pickle" {
+		if r.Method != http.MethodGet || r.URL.Path != endpointModelInfo || r.URL.Query().Get("modelId") != "model-tf-canary-big-pickle" {
 			t.Errorf("import read request = %s %s?%s", r.Method, r.URL.Path, r.URL.RawQuery)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(s04WrappedModelResponse(response, "model-tf-canary-big-pickle"))
 	}))
 	defer srv.Close()
 
@@ -389,22 +413,22 @@ func TestS04ImportedModelReadBackIsStableAcrossRepeatedReads(t *testing.T) {
 	}
 }
 
-func TestS04ImportedModelNotFoundClearsID(t *testing.T) {
+func TestS04ImportedModelEmptyV2DataClearsID(t *testing.T) {
 	resource := requireS04ModelSchema(t)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != endpointModelInfo || r.URL.Query().Get("litellm_model_id") != "missing-model" {
+		if r.URL.Path != endpointModelInfo || r.URL.Query().Get("modelId") != "missing/model with space" {
 			t.Errorf("not-found read request = %s?%s", r.URL.Path, r.URL.RawQuery)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusNotFound)
-		_ = json.NewEncoder(w).Encode(map[string]interface{}{
-			"error": map[string]interface{}{"message": "model not found"},
-		})
+		if r.URL.RawQuery != "modelId=missing%2Fmodel+with+space" {
+			t.Errorf("model ID not URL encoded: %s", r.URL.RawQuery)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{"data": []interface{}{}})
 	}))
 	defer srv.Close()
 
 	d := schema.TestResourceDataRaw(t, resource.Schema, map[string]interface{}{})
-	d.SetId("missing-model")
+	d.SetId("missing/model with space")
 	states, err := resource.Importer.StateContext(context.Background(), d, nil)
 	if err != nil || len(states) != 1 {
 		t.Fatalf("import missing model: states=%d err=%v", len(states), err)
@@ -414,5 +438,57 @@ func TestS04ImportedModelNotFoundClearsID(t *testing.T) {
 	}
 	if states[0].Id() != "" {
 		t.Fatalf("missing imported model ID = %q, want cleared", states[0].Id())
+	}
+}
+
+func TestS04ModelReadRejectsMismatchedAndMultipleV2Data(t *testing.T) {
+	tests := map[string][]interface{}{
+		"mismatched": {
+			map[string]interface{}{"model_info": map[string]interface{}{"id": "other-model"}},
+		},
+		"multiple": {
+			map[string]interface{}{"model_info": map[string]interface{}{"id": "expected-model"}},
+			map[string]interface{}{"model_info": map[string]interface{}{"id": "other-model"}},
+		},
+	}
+	for name, data := range tests {
+		t.Run(name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(map[string]interface{}{"data": data})
+			}))
+			defer srv.Close()
+
+			resource := resourceLiteLLMModel()
+			d := schema.TestResourceDataRaw(t, resource.Schema, map[string]interface{}{})
+			d.SetId("expected-model")
+			if err := resourceLiteLLMModelRead(d, NewClient(srv.URL, "test-key", false)); err == nil {
+				t.Fatal("read accepted ambiguous or mismatched v2 model data")
+			}
+			if d.Id() != "expected-model" {
+				t.Fatalf("failed read changed model ID to %q", d.Id())
+			}
+		})
+	}
+}
+
+func TestS04ModelReadDoesNotAcceptUnwrappedZeroStruct(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"model_name": "wrong-unwrapped-shape",
+			"model_info": map[string]interface{}{"id": "expected-model"},
+		})
+	}))
+	defer srv.Close()
+
+	resource := resourceLiteLLMModel()
+	d := schema.TestResourceDataRaw(t, resource.Schema, map[string]interface{}{})
+	d.SetId("expected-model")
+	if err := resourceLiteLLMModelRead(d, NewClient(srv.URL, "test-key", false)); err != nil {
+		t.Fatalf("unwrapped response should be treated as not found, got: %v", err)
+	}
+	if d.Id() != "" {
+		t.Fatalf("unwrapped response produced false success with ID %q", d.Id())
 	}
 }

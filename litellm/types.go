@@ -25,6 +25,11 @@ type ModelResponse struct {
 	Additional    map[string]interface{} `json:"additional"`
 }
 
+// ModelInfoListResponse is returned by GET /v2/model/info.
+type ModelInfoListResponse struct {
+	Data []ModelResponse `json:"data"`
+}
+
 // ModelRequest represents a request to create or update a model.
 type ModelRequest struct {
 	ModelName     string                 `json:"model_name"`

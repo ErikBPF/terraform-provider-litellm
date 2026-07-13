@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **model**: Reconstruct distinct routing and pricing base models during import without destructive defaults for existing configurations.
+- **model**: Read imported models from LiteLLM's `/v2/model/info` wrapper by exact model ID, rejecting empty, mismatched, or ambiguous responses.
 
 ## [0.2.2] - 2026-05-13
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -53,7 +54,7 @@ func retryModelRead(d *schema.ResourceData, m interface{}, maxRetries int) error
 const (
 	endpointModelNew    = "/model/new"
 	endpointModelUpdate = "/model/update"
-	endpointModelInfo   = "/model/info"
+	endpointModelInfo   = "/v2/model/info"
 	endpointModelDelete = "/model/delete"
 )
 
@@ -344,13 +345,14 @@ func resourceLiteLLMModelRead(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("invalid type assertion for client")
 	}
 
-	resp, err := MakeRequest(client, "GET", fmt.Sprintf("%s?litellm_model_id=%s", endpointModelInfo, d.Id()), nil)
+	query := url.Values{"modelId": []string{d.Id()}}
+	resp, err := MakeRequest(client, "GET", fmt.Sprintf("%s?%s", endpointModelInfo, query.Encode()), nil)
 	if err != nil {
 		return fmt.Errorf("failed to read model: %w", err)
 	}
 	defer resp.Body.Close()
 
-	modelResp, err := handleAPIResponse(resp, nil, client)
+	modelResp, err := handleModelInfoAPIResponse(resp, d.Id(), client)
 	if err != nil {
 		if err.Error() == "model_not_found" {
 			d.SetId("")
