@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-13
+
+### Added
+
+- **model**: Manage vision, character pricing, default voice, probe controls, and legacy token-limit metadata.
+
 ## [1.0.1] - 2026-07-13
 
 ### Added

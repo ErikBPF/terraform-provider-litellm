@@ -88,6 +88,22 @@ func configuredModelBool(d *schema.ResourceData, name string) *bool {
 	return &value
 }
 
+func configuredModelFloat(d *schema.ResourceData, name string) *float64 {
+	if !modelFieldConfigured(d, name) {
+		return nil
+	}
+	value := d.Get(name).(float64)
+	return &value
+}
+
+func configuredModelString(d *schema.ResourceData, name string) *string {
+	if !modelFieldConfigured(d, name) {
+		return nil
+	}
+	value := d.Get(name).(string)
+	return &value
+}
+
 func configuredModelStringList(d *schema.ResourceData, name string) *[]string {
 	if !modelFieldConfigured(d, name) {
 		return nil
@@ -305,6 +321,13 @@ func createOrUpdateModel(d *schema.ResourceData, m interface{}, isUpdate bool) e
 			OutputModalities:        configuredModelStringList(d, "output_modalities"),
 			SupportsReasoning:       configuredModelBool(d, "supports_reasoning"),
 			SupportsFunctionCalling: configuredModelBool(d, "supports_function_calling"),
+			SupportsVision:          configuredModelBool(d, "supports_vision"),
+			InputCostPerCharacter:   configuredModelFloat(d, "input_cost_per_character"),
+			DefaultVoice:            configuredModelString(d, "default_voice"),
+			ProbeLanguage:           configuredModelString(d, "probe_language"),
+			ProbeText:               configuredModelString(d, "probe_text"),
+			ProbeSkip:               configuredModelBool(d, "probe_skip"),
+			MaxTokens:               configuredModelInt(d, "max_tokens"),
 		},
 		Additional: make(map[string]interface{}),
 	}
@@ -419,6 +442,41 @@ func resourceLiteLLMModelRead(d *schema.ResourceData, m interface{}) error {
 	if modelResp.ModelInfo.SupportsFunctionCalling != nil {
 		if err := d.Set("supports_function_calling", *modelResp.ModelInfo.SupportsFunctionCalling); err != nil {
 			return fmt.Errorf("failed to set supports_function_calling: %w", err)
+		}
+	}
+	if modelResp.ModelInfo.SupportsVision != nil {
+		if err := d.Set("supports_vision", *modelResp.ModelInfo.SupportsVision); err != nil {
+			return fmt.Errorf("failed to set supports_vision: %w", err)
+		}
+	}
+	if modelResp.ModelInfo.InputCostPerCharacter != nil {
+		if err := d.Set("input_cost_per_character", *modelResp.ModelInfo.InputCostPerCharacter); err != nil {
+			return fmt.Errorf("failed to set input_cost_per_character: %w", err)
+		}
+	}
+	if modelResp.ModelInfo.DefaultVoice != nil {
+		if err := d.Set("default_voice", *modelResp.ModelInfo.DefaultVoice); err != nil {
+			return fmt.Errorf("failed to set default_voice: %w", err)
+		}
+	}
+	if modelResp.ModelInfo.ProbeLanguage != nil {
+		if err := d.Set("probe_language", *modelResp.ModelInfo.ProbeLanguage); err != nil {
+			return fmt.Errorf("failed to set probe_language: %w", err)
+		}
+	}
+	if modelResp.ModelInfo.ProbeText != nil {
+		if err := d.Set("probe_text", *modelResp.ModelInfo.ProbeText); err != nil {
+			return fmt.Errorf("failed to set probe_text: %w", err)
+		}
+	}
+	if modelResp.ModelInfo.ProbeSkip != nil {
+		if err := d.Set("probe_skip", *modelResp.ModelInfo.ProbeSkip); err != nil {
+			return fmt.Errorf("failed to set probe_skip: %w", err)
+		}
+	}
+	if modelResp.ModelInfo.MaxTokens != nil {
+		if err := d.Set("max_tokens", *modelResp.ModelInfo.MaxTokens); err != nil {
+			return fmt.Errorf("failed to set max_tokens: %w", err)
 		}
 	}
 
