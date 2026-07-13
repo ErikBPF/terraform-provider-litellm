@@ -42,8 +42,8 @@ func requireCatalogModelSchema(t *testing.T) *schema.Resource {
 		if field.Type != valueType {
 			t.Errorf("catalog RED: model schema %q type = %v, want %v", name, field.Type, valueType)
 		}
-		if !field.Optional || field.Required {
-			t.Errorf("catalog RED: model schema %q must be optional and not required", name)
+		if !field.Optional || !field.Computed || field.Required {
+			t.Errorf("catalog RED: model schema %q must be Optional+Computed and not required", name)
 		}
 	}
 	return resource
@@ -181,6 +181,49 @@ func TestCatalogModelReadPreservesTypedMetadataOmittedByAPI(t *testing.T) {
 		t.Fatalf("read model with omitted metadata: %v", err)
 	}
 	assertCatalogModelInfoState(t, d, "omitted API metadata")
+}
+
+func TestCatalogModelReadAdoptsAPIPopulatedMetadataWithoutConfigDrift(t *testing.T) {
+	resource := requireCatalogModelSchema(t)
+	requireCatalogFields(t, resource)
+
+	apiModelInfo := map[string]interface{}{
+		"supports_vision":          false,
+		"input_cost_per_character": 0.0,
+		"default_voice":            "alloy",
+		"probe_language":           "pt-BR",
+		"probe_text":               "Teste de saude",
+		"probe_skip":               false,
+		"max_tokens":               204800,
+	}
+	response := map[string]interface{}{
+		"model_name": "catalog-model",
+		"litellm_params": map[string]interface{}{
+			"custom_llm_provider": "openai", "model": "openai/catalog-upstream",
+		},
+		"model_info": apiModelInfo,
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(s04WrappedModelResponse(response, "catalog-model-id"))
+	}))
+	defer srv.Close()
+
+	d := schema.TestResourceDataRaw(t, resource.Schema, map[string]interface{}{
+		"model_name": "catalog-model", "custom_llm_provider": "openai",
+		"base_model": "catalog-upstream", "mode": "chat",
+	})
+	d.SetId("catalog-model-id")
+	for read := 1; read <= 2; read++ {
+		if err := resourceLiteLLMModelRead(d, NewClient(srv.URL, "test-key", false)); err != nil {
+			t.Fatalf("read %d model with API-populated metadata: %v", read, err)
+		}
+		for name, want := range apiModelInfo {
+			if got := d.Get(name); !reflect.DeepEqual(got, want) {
+				t.Errorf("read %d API-populated %s = %#v, want %#v", read, name, got, want)
+			}
+		}
+	}
 }
 
 func TestCatalogImportedModelRestoresTypedMetadataAcrossRepeatedReads(t *testing.T) {
