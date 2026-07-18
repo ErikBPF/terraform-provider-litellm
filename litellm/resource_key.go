@@ -202,6 +202,7 @@ func resourceKeyDelete(ctx context.Context, d *schema.ResourceData, m interface{
 }
 
 func mapResourceDataToKey(d *schema.ResourceData, key *Key) {
+	key.Key = d.Get("key").(string)
 	key.Models = expandStringList(d.Get("models").([]interface{}))
 	if v, ok := d.GetOk("max_budget"); ok {
 		val := v.(float64)
