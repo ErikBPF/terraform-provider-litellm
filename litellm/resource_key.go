@@ -24,6 +24,11 @@ func resourceKey() *schema.Resource {
 				WriteOnly: true,
 				Sensitive: true,
 			},
+			"generated_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 			"token_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -152,9 +157,9 @@ func resourceKeyCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	}
 
 	d.SetId(createdKey.TokenID)
-	// Set the write-only key value so it's available during this apply
-	// but will not be persisted to state.
-	d.Set("key", createdKey.Key)
+	if err := d.Set("generated_key", createdKey.Key); err != nil {
+		return diag.FromErr(fmt.Errorf("error storing generated key: %w", err))
+	}
 	return resourceKeyRead(ctx, d, m)
 }
 
