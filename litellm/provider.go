@@ -8,6 +8,7 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		ResourcesMap: map[string]*schema.Resource{
+			"litellm_guardrail":               resourceLiteLLMGuardrail(),
 			"litellm_model":                   resourceLiteLLMModel(),
 			"litellm_team":                    ResourceLiteLLMTeam(),
 			"litellm_organization":            resourceLiteLLMOrganization(),

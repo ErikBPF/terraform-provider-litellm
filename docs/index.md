@@ -44,6 +44,7 @@ resource "litellm_team" "dev_team" {
 The LiteLLM provider supports the following resources:
 
 * [`litellm_model`](./resources/model) - Manage LiteLLM model configurations
+* [`litellm_guardrail`](./resources/guardrail) - Manage DB-backed guardrail definitions
 * [`litellm_team`](./resources/team) - Manage teams and their permissions
 * [`litellm_team_member`](./resources/team_member) - Manage team member configurations
 * [`litellm_team_member_add`](./resources/team_member_add) - Add members to teams
