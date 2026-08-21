@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-21
+
 ### Added
 
 - **guardrail**: Manage arbitrary DB-backed LiteLLM guardrail definitions with import support and sensitive provider parameters.
+
+### Changed
+
+- Sync the official provider's `0.4.0` organization, team-member, sensitive-field, dependency, and endpoint-audit changes.
 
 ## [0.4.0] - 2026-08-06
 
@@ -23,6 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The provider source of truth moved to `terraform/provider/` in [BerriAI/litellm](https://github.com/BerriAI/litellm); this repository is now a release mirror. CI in the monorepo statically audits every endpoint the provider calls against the proxy's OpenAPI schema on every change
 - **mcp_server**, **vector_store**: `env` and `litellm_params` are now marked sensitive, so they are redacted from plan/apply output, and they are no longer read back from the API into state — the configured value is authoritative. If the proxy returns values that differ from the configuration, that drift is no longer surfaced on refresh
 - Dependency updates: `grpc` and `golang.org/x` modules
+
+## [1.1.2] - 2026-07-24
+
+### Added
+
+- **key**: Expose newly generated keys through sensitive `generated_key` state for immediate secret-store handoff.
 
 ## [1.1.1] - 2026-07-13
 
