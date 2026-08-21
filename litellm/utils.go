@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -35,7 +35,7 @@ func isModelNotFoundError(errResp ErrorResponse) bool {
 }
 
 func handleAPIResponse(resp *http.Response, reqBody interface{}, client *Client) (*ModelResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
@@ -63,7 +63,7 @@ func handleAPIResponse(resp *http.Response, reqBody interface{}, client *Client)
 // handleModelInfoAPIResponse parses the list wrapper returned by
 // GET /v2/model/info and rejects ambiguous or mismatched results.
 func handleModelInfoAPIResponse(resp *http.Response, expectedID string, client *Client) (*ModelResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read model info response body: %v", err)
 	}
@@ -147,7 +147,7 @@ func GetBoolValue(apiValue, defaultValue bool) bool {
 
 // handleMCPAPIResponse handles API responses specifically for MCP server operations
 func handleMCPAPIResponse(resp *http.Response, result interface{}, client *Client) error {
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %v", err)
 	}
@@ -224,7 +224,7 @@ func isCredentialNotFoundError(errResp ErrorResponse) bool {
 
 // handleCredentialAPIResponse handles API responses specifically for credential operations
 func handleCredentialAPIResponse(resp *http.Response, result interface{}, client *Client) error {
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %v", err)
 	}
@@ -283,7 +283,7 @@ func isVectorStoreNotFoundError(errResp ErrorResponse) bool {
 
 // handleVectorStoreAPIResponse handles API responses specifically for vector store operations
 func handleVectorStoreAPIResponse(resp *http.Response, result interface{}, client *Client) error {
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %v", err)
 	}
