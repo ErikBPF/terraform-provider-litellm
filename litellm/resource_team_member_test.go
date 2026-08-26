@@ -10,6 +10,46 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+func TestTeamMemberCreateOmitsUnsetBudget(t *testing.T) {
+	var captured map[string]interface{}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		json.Unmarshal(body, &captured)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{}`))
+	}))
+	defer srv.Close()
+
+	client := NewClient(srv.URL, "test-key", true)
+	d := schema.TestResourceDataRaw(t, resourceLiteLLMTeamMember().Schema, map[string]interface{}{
+		"team_id":    "team-1",
+		"user_id":    "user-1",
+		"user_email": "user@example.com",
+		"role":       "user",
+	})
+
+	if err := resourceLiteLLMTeamMemberCreate(d, client); err != nil {
+		t.Fatalf("create failed: %v", err)
+	}
+	if _, ok := captured["max_budget_in_team"]; ok {
+		t.Fatalf("create payload included unset max_budget_in_team: %v", captured)
+	}
+}
+
+func TestOptionalTeamMemberBudgetPreservesExplicitZero(t *testing.T) {
+	d := schema.TestResourceDataRaw(t, resourceLiteLLMTeamMember().Schema, map[string]interface{}{
+		"max_budget_in_team": 0.0,
+	})
+	payload := map[string]interface{}{}
+
+	addOptionalTeamMemberBudget(d, payload)
+
+	if budget, ok := payload["max_budget_in_team"]; !ok || budget != 0.0 {
+		t.Fatalf("explicit zero budget was not preserved: %v", payload)
+	}
+}
+
 func TestTeamMemberUpdateSendsRole(t *testing.T) {
 	var captured map[string]interface{}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -40,5 +80,8 @@ func TestTeamMemberUpdateSendsRole(t *testing.T) {
 	}
 	if role != "user" {
 		t.Fatalf("update payload sent role %v, want user", role)
+	}
+	if _, ok := captured["max_budget_in_team"]; ok {
+		t.Fatalf("update payload included unset max_budget_in_team: %v", captured)
 	}
 }

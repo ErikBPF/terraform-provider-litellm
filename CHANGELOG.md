@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **team_member, team_member_add**: Omit `max_budget_in_team` from API payloads when it is not configured, preventing LiteLLM from treating an unset member budget as an explicit zero-dollar limit.
+
 ## [1.2.0] - 2026-08-21
 
 ### Added
