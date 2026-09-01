@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-09-01
+
 ### Added
 
 - **model**: Configure cached-input pricing with `cache_read_input_cost_per_million_tokens`.
