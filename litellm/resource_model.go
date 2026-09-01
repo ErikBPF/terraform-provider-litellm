@@ -141,6 +141,12 @@ func resourceLiteLLMModel() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.FloatAtLeast(0),
 			},
+			"cache_read_input_cost_per_million_tokens": {
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.FloatAtLeast(0),
+			},
 			"default_voice": {
 				Type:     schema.TypeString,
 				Optional: true,
