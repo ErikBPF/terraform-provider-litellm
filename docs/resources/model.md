@@ -135,6 +135,7 @@ The following arguments are supported:
   * `audio_transcription`
   * `audio_speech`
   * `rerank`
+  * `responses`
 
 * `tpm` - (Optional) integer. Tokens per minute limit for this model.
 
