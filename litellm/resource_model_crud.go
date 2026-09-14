@@ -126,14 +126,13 @@ func createOrUpdateModel(d *schema.ResourceData, m interface{}, isUpdate bool) e
 		return fmt.Errorf("invalid type assertion for client")
 	}
 
-	// Construct the model name in the format "custom_llm_provider/base_model"
+	// An explicit provider requires the bare model; Router adds its own prefix.
 	customLLMProvider := d.Get("custom_llm_provider").(string)
 	baseModel := d.Get("base_model").(string)
-	modelName := fmt.Sprintf("%s/%s", customLLMProvider, baseModel)
 
 	// Pricing base_model, decoupled from routing. When pricing_base_model is
 	// set it feeds model_info.base_model (the cost-lookup key) WITHOUT changing
-	// the routing string above; otherwise base_model drives pricing as before.
+	// routing; otherwise base_model drives pricing as before.
 	pricingBaseModel := baseModel
 	if v, ok := d.GetOk("pricing_base_model"); ok && v.(string) != "" {
 		pricingBaseModel = v.(string)
@@ -157,7 +156,7 @@ func createOrUpdateModel(d *schema.ResourceData, m interface{}, isUpdate bool) e
 	// Build the base litellm_params as a map to allow for additional parameters
 	litellmParams := map[string]interface{}{
 		"custom_llm_provider":                customLLMProvider,
-		"model":                              modelName,
+		"model":                              baseModel,
 		"merge_reasoning_content_in_choices": d.Get("merge_reasoning_content_in_choices").(bool),
 	}
 
@@ -400,6 +399,10 @@ func resourceLiteLLMModelRead(d *schema.ResourceData, m interface{}) error {
 	// routing base from litellm_params.model by stripping exactly one matching
 	// provider prefix. A model name containing further slashes stays intact.
 	routingBaseModel := modelRoutingBase(modelResp.LiteLLMParams.CustomLLMProvider, modelResp.LiteLLMParams.Model)
+	// A configured bare identifier may itself start with its provider namespace.
+	if configured := d.Get("base_model").(string); configured != "" && configured == modelResp.LiteLLMParams.Model {
+		routingBaseModel = configured
+	}
 	if routingBaseModel == "" {
 		routingBaseModel = d.Get("base_model").(string)
 	}
