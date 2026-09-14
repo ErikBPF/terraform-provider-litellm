@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow `litellm_model.mode = "responses"` for models requiring the native Responses API.
 
+## [1.2.2] - 2026-09-01
+
+### Added
+
+- **model**: Configure cached-input pricing with `cache_read_input_cost_per_million_tokens`.
+
+## [1.2.1] - 2026-08-26
+
+### Fixed
+
+- **team_member, team_member_add**: Omit `max_budget_in_team` from API payloads when it is not configured, preventing LiteLLM from treating an unset member budget as an explicit zero-dollar limit.
+
 ## [1.2.0] - 2026-08-21
 
 ### Added

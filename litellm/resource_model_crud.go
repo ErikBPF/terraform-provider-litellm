@@ -304,6 +304,10 @@ func createOrUpdateModel(d *schema.ResourceData, m interface{}, isUpdate bool) e
 	if credentialName := d.Get("litellm_credential_name").(string); credentialName != "" {
 		litellmParams["litellm_credential_name"] = credentialName
 	}
+	cacheReadInputCost := configuredModelFloat(d, "cache_read_input_cost_per_million_tokens")
+	if cacheReadInputCost != nil {
+		*cacheReadInputCost /= 1000000.0
+	}
 
 	modelReq := ModelRequest{
 		ModelName:     d.Get("model_name").(string),
@@ -323,6 +327,7 @@ func createOrUpdateModel(d *schema.ResourceData, m interface{}, isUpdate bool) e
 			SupportsFunctionCalling: configuredModelBool(d, "supports_function_calling"),
 			SupportsVision:          configuredModelBool(d, "supports_vision"),
 			InputCostPerCharacter:   configuredModelFloat(d, "input_cost_per_character"),
+			CacheReadInputTokenCost: cacheReadInputCost,
 			DefaultVoice:            configuredModelString(d, "default_voice"),
 			ProbeLanguage:           configuredModelString(d, "probe_language"),
 			ProbeText:               configuredModelString(d, "probe_text"),
@@ -452,6 +457,11 @@ func resourceLiteLLMModelRead(d *schema.ResourceData, m interface{}) error {
 	if modelResp.ModelInfo.InputCostPerCharacter != nil {
 		if err := d.Set("input_cost_per_character", *modelResp.ModelInfo.InputCostPerCharacter); err != nil {
 			return fmt.Errorf("failed to set input_cost_per_character: %w", err)
+		}
+	}
+	if modelResp.ModelInfo.CacheReadInputTokenCost != nil {
+		if err := d.Set("cache_read_input_cost_per_million_tokens", *modelResp.ModelInfo.CacheReadInputTokenCost*1000000.0); err != nil {
+			return fmt.Errorf("failed to set cache_read_input_cost_per_million_tokens: %w", err)
 		}
 	}
 	if modelResp.ModelInfo.DefaultVoice != nil {

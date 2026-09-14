@@ -111,6 +111,7 @@ type ModelInfoRequest struct {
 	SupportsFunctionCalling *bool     `json:"supports_function_calling,omitempty"`
 	SupportsVision          *bool     `json:"supports_vision,omitempty"`
 	InputCostPerCharacter   *float64  `json:"input_cost_per_character,omitempty"`
+	CacheReadInputTokenCost *float64  `json:"cache_read_input_token_cost,omitempty"`
 	DefaultVoice            *string   `json:"default_voice,omitempty"`
 	ProbeLanguage           *string   `json:"probe_language,omitempty"`
 	ProbeText               *string   `json:"probe_text,omitempty"`
@@ -135,6 +136,7 @@ type ModelInfoResponse struct {
 	SupportsFunctionCalling *bool     `json:"supports_function_calling"`
 	SupportsVision          *bool     `json:"supports_vision"`
 	InputCostPerCharacter   *float64  `json:"input_cost_per_character"`
+	CacheReadInputTokenCost *float64  `json:"cache_read_input_token_cost"`
 	DefaultVoice            *string   `json:"default_voice"`
 	ProbeLanguage           *string   `json:"probe_language"`
 	ProbeText               *string   `json:"probe_text"`
